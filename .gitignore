@@ -1,0 +1,12 @@
+# Rust build artifacts
+target/
+Cargo.lock
+
+# IDE / tooling
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# KirkForge working files (state kept private to agent)
+state.md
