@@ -1,0 +1,6 @@
+{
+  "id": "stratum@local",
+  "name": "Stratum",
+  "version": "0.1.0",
+  "description": "Context-compression and behaviour plugin for AI agent hosts."
+}

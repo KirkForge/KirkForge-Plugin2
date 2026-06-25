@@ -1,0 +1,16 @@
+{
+  "hooks": [
+    {
+      "event": "SessionStart",
+      "command": "stratum init hook ensure"
+    },
+    {
+      "event": "PreToolUse",
+      "command": "stratum rules emit"
+    },
+    {
+      "event": "UserPromptSubmit",
+      "command": "stratum mode track"
+    }
+  ]
+}

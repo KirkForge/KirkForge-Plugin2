@@ -1,0 +1,17 @@
+[package]
+name = "stratum-cli"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "stratum"
+path = "src/main.rs"
+
+[dependencies]
+stratum-core = { path = "../stratum-core" }
+stratum-hosts = { path = "../stratum-hosts" }
+clap = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
