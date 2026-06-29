@@ -20,8 +20,8 @@
   **Performance** section documenting the benchmark harness.
 - Updated `.github/workflows/ci.yml` to build and test on a matrix of
   `ubuntu-latest` (x86_64 GNU, x86_64 musl) and `macos-latest` (aarch64), and
-  bumped the pinned `cargo-deny` to `0.18.4` to pick up the CVSS 4.0 advisory
-  parser fix.
+  bumped the pinned `cargo-deny` to `0.19.9` (requires Rust 1.88.0) to pick up
+  the CVSS 4.0 advisory parser fix and resolve `RUSTSEC-2026-0190`.
 - Added `.github/workflows/release.yml` triggered on `v*` tags: test, publish to
   crates.io in dependency order, build release binaries for four targets, generate
   an SBOM with `cargo-sbom`, keyless-sign binaries with Sigstore/cosign, and
@@ -35,8 +35,9 @@
 - Verified `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets
   --all-features --locked`, `cargo test --workspace --locked --all-features`,
   `RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --all-features`,
-  `cargo build --workspace --locked --all-features --profile ci`, and
-  `cargo check --benches -p kirkstratum-core --all-features` all pass.
+  `cargo build --workspace --locked --all-features --profile ci`,
+  `cargo check --benches -p kirkstratum-core --all-features`, and
+  `cargo deny check` all pass.
 
 ## 2026-06-27 — Expand `#[must_use]` coverage across public traits and CLI helpers
 - Completed the `#[must_use]` pass started in Task #150:

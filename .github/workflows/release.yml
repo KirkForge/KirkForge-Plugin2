@@ -20,7 +20,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: 1.85.0
+          toolchain: 1.88.0
           components: rustfmt, clippy
 
       - name: Cache Cargo dependencies
@@ -37,7 +37,7 @@ jobs:
 
       - name: Cargo deny check
         run: |
-          cargo install cargo-deny --version 0.18.4 --locked
+          cargo install cargo-deny --version 0.19.9 --locked
           cargo deny check
 
   publish:
@@ -52,7 +52,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: 1.85.0
+          toolchain: 1.88.0
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@v2
@@ -93,7 +93,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: 1.85.0
+          toolchain: 1.88.0
           targets: ${{ matrix.target }}
 
       - name: Install cross-compilation tools
@@ -136,7 +136,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: 1.85.0
+          toolchain: 1.88.0
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@v2

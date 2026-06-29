@@ -21,7 +21,7 @@ fn main() {
     });
     pipeline.register_output_transform(|s| {
         // Wrap the final output so it is easy to spot in logs.
-        format!("<stratum>{}</stratum>", s)
+        format!("<stratum>{s}</stratum>")
     });
 
     // Set up the per-invocation context and an in-memory offload store.
@@ -39,11 +39,11 @@ fn main() {
         &cfg,
         Mode::Full,
     );
-    println!("small: {}", out);
+    println!("small: {out}");
 
     // ...while a bloated payload is offloaded and replaced by a reference.
     let big = "x".repeat(10_000);
     let out = pipeline.run(&big, ContentType::PlainText, &ctx, &store, &cfg, Mode::Full);
-    println!("big: {}", out);
-    println!("stored payloads: {}", store.len());
+    println!("big: {out}");
+    println!("stored payloads: {len}", len = store.len());
 }

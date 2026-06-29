@@ -33,7 +33,7 @@ cargo install --path crates/kirkstratum-cli
 cargo build --workspace
 ```
 
-The workspace pins Rust 1.85.0 via `rust-toolchain.toml`, which also declares
+The workspace pins Rust 1.88.0 via `rust-toolchain.toml`, which also declares
 `rustfmt` and `clippy` components so every environment uses the same toolchain.
 
 ## Test
