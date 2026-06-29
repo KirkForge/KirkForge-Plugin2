@@ -14,6 +14,18 @@
 - Default `config/pipeline.toml` now includes `transform_timeout_ms = 30000`;
   the embedded-TOML roundtrip test guards against drift.
 
+## 2026-06-29 — Harden release workflow and MSRV metadata
+- Added waits between crates.io publications in `.github/workflows/release.yml`
+  so `kirkstratum-hosts` and `kirkstratum-cli` are only published after their
+  dependencies appear in the registry index.
+- Removed duplicate artifact uploads from the GitHub Release step in
+  `.github/workflows/release.yml` (SBOM and signatures are already collected
+  into `final/`).
+- Bumped workspace `rust-version` from `1.85` to `1.88.0` to match the pinned
+  CI/toolchain version and the actual supported compiler.
+- Updated `README.md` **Releasing** section to describe the automated tag-based
+  release pipeline and the intentional absence of a self-update mechanism.
+
 ## 2026-06-29 — Harden publication, testing, and distribution gaps
 - Switched `InMemoryOffloadStore` to use the full 64-character BLAKE3 hash as the
   offload key, eliminating the theoretical prefix-collision risk noted in the

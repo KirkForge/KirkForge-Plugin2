@@ -311,3 +311,11 @@ cargo publish -p kirkstratum-cli
 Until `kirkstratum-hosts` is on crates.io, `cargo package -p kirkstratum-cli` cannot be
 fully verified because it depends on the registry version of `kirkstratum-hosts`.
 The tarball can still be generated locally with `--no-verify`.
+
+Tagged releases (`v*`) are automated by `.github/workflows/release.yml`: test,
+publish to crates.io in dependency order, build cross-platform binaries, generate
+an SBOM, keyless-sign the binaries with Sigstore/cosign, and create a GitHub
+Release with `SHA256SUMS`.
+
+Stratum intentionally does not include a self-update mechanism. To stay current,
+watch the GitHub Releases page or subscribe to the release feed.
