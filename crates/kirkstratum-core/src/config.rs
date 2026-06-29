@@ -72,6 +72,17 @@ pub struct PipelineConfig {
     /// Per-domain overrides keyed by detected content type.
     #[serde(default)]
     pub per_domain: HashMap<ContentType, DomainOverrides>,
+    /// Maximum time, in milliseconds, that a single transform is allowed to run.
+    ///
+    /// A value of `0` disables the timeout and runs transforms synchronously.
+    /// The default is 30 seconds.
+    #[serde(default = "default_transform_timeout_ms")]
+    pub transform_timeout_ms: u64,
+}
+
+/// Default per-transform timeout: 30 seconds.
+fn default_transform_timeout_ms() -> u64 {
+    30_000
 }
 
 impl PipelineConfig {
@@ -93,6 +104,14 @@ impl PipelineConfig {
         self.overrides_for(content_type)
             .and_then(|d| d.bloat_threshold)
             .map_or(self.bloat_threshold.get(), Ratio::get)
+    }
+
+    /// Return the effective per-transform timeout in milliseconds.
+    ///
+    /// A value of `0` disables the timeout.
+    #[must_use]
+    pub fn transform_timeout_ms(&self) -> u64 {
+        self.transform_timeout_ms
     }
 }
 
@@ -119,6 +138,8 @@ struct PartialPipelineConfig {
     offload_fallback_ratio: Option<Ratio>,
     #[serde(default)]
     per_domain: HashMap<ContentType, DomainOverrides>,
+    #[serde(default)]
+    transform_timeout_ms: Option<u64>,
 }
 
 impl Default for PipelineConfig {
@@ -194,6 +215,9 @@ impl PipelineConfig {
         }
         if let Some(v) = partial.offload_fallback_ratio {
             self.offload_fallback_ratio = v;
+        }
+        if let Some(v) = partial.transform_timeout_ms {
+            self.transform_timeout_ms = v;
         }
         for (ct, overrides) in &partial.per_domain {
             let entry = self.per_domain.entry(*ct).or_default();
@@ -340,6 +364,7 @@ mod tests {
         assert!(serialized.contains("reformat_target_ratio = 0.05"));
         assert!(serialized.contains("bloat_threshold = 0.5"));
         assert!(serialized.contains("offload_fallback_ratio = 0.85"));
+        assert!(serialized.contains("transform_timeout_ms = 30000"));
     }
 
     #[test]

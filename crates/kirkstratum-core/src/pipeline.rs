@@ -3,7 +3,9 @@ use crate::content::ContentType;
 use crate::mode::Mode;
 use crate::store::OffloadStore;
 use std::fmt;
-use tracing::{debug, instrument, trace, Span};
+use std::sync::{mpsc::RecvTimeoutError, Arc};
+use std::time::Duration;
+use tracing::{debug, instrument, trace, warn, Span};
 
 /// Per-invocation context used by the bloat heuristic.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -105,8 +107,8 @@ impl<F: Fn(&str) -> String + Send + Sync> Transform for F {
 /// final string.
 #[must_use]
 pub struct CompressionPipeline {
-    content_transforms: Vec<Box<dyn Transform>>,
-    output_transforms: Vec<Box<dyn Transform>>,
+    content_transforms: Vec<Arc<dyn Transform>>,
+    output_transforms: Vec<Arc<dyn Transform>>,
 }
 
 impl Default for CompressionPipeline {
@@ -147,7 +149,7 @@ impl CompressionPipeline {
         &mut self,
         f: impl Fn(&str) -> String + Send + Sync + 'static,
     ) {
-        self.content_transforms.push(Box::new(f));
+        self.content_transforms.push(Arc::new(f));
     }
 
     /// Register a transform that runs after bloat detection and offloading.
@@ -164,7 +166,7 @@ impl CompressionPipeline {
         &mut self,
         f: impl Fn(&str) -> String + Send + Sync + 'static,
     ) {
-        self.output_transforms.push(Box::new(f));
+        self.output_transforms.push(Arc::new(f));
     }
 
     /// Run the pipeline on `content`.
@@ -216,12 +218,14 @@ impl CompressionPipeline {
             return current;
         }
 
+        let timeout_ms = cfg.transform_timeout_ms();
+
         for (i, t) in self.content_transforms.iter().enumerate() {
             let span = Span::current();
             let _stage =
                 tracing::info_span!(parent: &span, "content_transform", stage = i).entered();
             let before = current.len();
-            current = t.apply(&current);
+            current = Self::apply_with_timeout(t, current, timeout_ms, i, "content");
             debug!(
                 stage = i,
                 before,
@@ -247,7 +251,7 @@ impl CompressionPipeline {
             let _stage =
                 tracing::info_span!(parent: &span, "output_transform", stage = i).entered();
             let before = current.len();
-            current = t.apply(&current);
+            current = Self::apply_with_timeout(t, current, timeout_ms, i, "output");
             debug!(
                 stage = i,
                 before,
@@ -257,6 +261,47 @@ impl CompressionPipeline {
         }
 
         current
+    }
+
+    /// Apply `transform` to `content` with a configurable timeout.
+    ///
+    /// When `timeout_ms` is `0`, the transform runs synchronously. Otherwise it is
+    /// executed on a background thread and the result is waited on with a channel
+    /// timeout. If the transform does not finish in time (or panics), the original
+    /// `content` is returned unchanged and a warning is emitted.
+    fn apply_with_timeout(
+        transform: &Arc<dyn Transform>,
+        content: String,
+        timeout_ms: u64,
+        stage: usize,
+        kind: &'static str,
+    ) -> String {
+        if timeout_ms == 0 {
+            return transform.apply(&content);
+        }
+
+        let (tx, rx) = std::sync::mpsc::channel();
+        let transform = Arc::clone(transform);
+        // Keep a copy of the input so we can return it unchanged if the
+        // transform does not finish within the timeout.
+        let content_for_thread = content.clone();
+
+        std::thread::spawn(move || {
+            let result = transform.apply(&content_for_thread);
+            let _ = tx.send(result);
+        });
+
+        match rx.recv_timeout(Duration::from_millis(timeout_ms)) {
+            Ok(result) => result,
+            Err(RecvTimeoutError::Timeout) => {
+                warn!(stage, kind, timeout_ms, "transform timed out; skipping");
+                content
+            }
+            Err(RecvTimeoutError::Disconnected) => {
+                warn!(stage, kind, timeout_ms, "transform aborted; skipping");
+                content
+            }
+        }
     }
 }
 
@@ -502,5 +547,83 @@ mod tests {
         assert!(debug.contains("content_transforms: 1"));
         assert!(debug.contains("output_transforms: 1"));
         assert!(debug.starts_with("CompressionPipeline {"));
+    }
+
+    #[test]
+    fn default_transform_timeout_is_thirty_seconds() {
+        let cfg = PipelineConfig::default();
+        assert_eq!(cfg.transform_timeout_ms(), 30_000);
+    }
+
+    #[test]
+    fn transform_timeout_can_be_disabled() {
+        let mut pipeline = CompressionPipeline::new();
+        pipeline.register_content_transform(|_| "changed".to_string());
+
+        let cfg = PipelineConfig {
+            transform_timeout_ms: 0,
+            ..Default::default()
+        };
+        let store = InMemoryOffloadStore::new();
+        let out = pipeline.run(
+            "input",
+            ContentType::PlainText,
+            &CompressionContext::default(),
+            &store,
+            &cfg,
+            Mode::Full,
+        );
+
+        assert_eq!(out, "changed");
+    }
+
+    #[test]
+    fn slow_transform_is_skipped_when_timeout_expires() {
+        let mut pipeline = CompressionPipeline::new();
+        // A transform that intentionally sleeps longer than the timeout.
+        pipeline.register_content_transform(|s| {
+            std::thread::sleep(std::time::Duration::from_millis(200));
+            s.to_uppercase()
+        });
+
+        let cfg = PipelineConfig {
+            transform_timeout_ms: 1,
+            ..Default::default()
+        };
+        let store = InMemoryOffloadStore::new();
+        let input = "keep me";
+        let out = pipeline.run(
+            input,
+            ContentType::PlainText,
+            &CompressionContext::default(),
+            &store,
+            &cfg,
+            Mode::Full,
+        );
+
+        // The slow transform is skipped, so the original input is returned.
+        assert_eq!(out, input);
+    }
+
+    #[test]
+    fn fast_transform_is_applied_despite_timeout() {
+        let mut pipeline = CompressionPipeline::new();
+        pipeline.register_content_transform(|s| s.to_uppercase());
+
+        let cfg = PipelineConfig {
+            transform_timeout_ms: 5_000,
+            ..Default::default()
+        };
+        let store = InMemoryOffloadStore::new();
+        let out = pipeline.run(
+            "abc",
+            ContentType::PlainText,
+            &CompressionContext::default(),
+            &store,
+            &cfg,
+            Mode::Full,
+        );
+
+        assert_eq!(out, "ABC");
     }
 }

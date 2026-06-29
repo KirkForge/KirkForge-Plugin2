@@ -156,6 +156,20 @@ Precedence (highest to lowest):
 3. `$XDG_CONFIG_HOME/stratum/pipeline.toml`
 4. Embedded default
 
+## Transform timeout
+
+Each registered transform is capped by `transform_timeout_ms` in the effective
+config (default: 30000 ms). If a transform does not finish in time, the pipeline
+logs a warning and continues with the input to that transform unchanged. A value
+of `0` disables the timeout and runs transforms synchronously. This bounds the
+impact of pathological inputs or third-party transforms without introducing an
+async runtime.
+
+```toml
+# pipeline.toml
+transform_timeout_ms = 30000
+```
+
 ## Scriptable output
 
 Subcommands that emit structured output (`config`, `rules`, `mode`, `version`)

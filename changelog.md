@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-06-29 — Add per-transform execution timeout
+- Added `transform_timeout_ms` to `PipelineConfig` (default 30 000 ms). Each
+  content and output transform runs under this deadline; if it expires, the
+  transform is skipped and the input to that stage is returned unchanged. A
+  value of `0` disables the timeout and runs transforms synchronously.
+- Changed `CompressionPipeline` to store transforms as `Arc<dyn Transform>` so
+  they can be shared with background worker threads used by the timeout wrapper.
+- Added four unit tests for the timeout behavior: default value, disabled
+  timeout, slow transform skipped, and fast transform applied.
+- Documented the timeout in `README.md` and updated `SECURITY.md` **Known
+  limitations** to note that timed-out transforms continue in detached threads.
+- Default `config/pipeline.toml` now includes `transform_timeout_ms = 30000`;
+  the embedded-TOML roundtrip test guards against drift.
+
 ## 2026-06-29 — Harden publication, testing, and distribution gaps
 - Switched `InMemoryOffloadStore` to use the full 64-character BLAKE3 hash as the
   offload key, eliminating the theoretical prefix-collision risk noted in the
@@ -27,8 +41,8 @@
   an SBOM with `cargo-sbom`, keyless-sign binaries with Sigstore/cosign, and
   create a GitHub Release with `SHA256SUMS`.
 - Expanded `SECURITY.md` with a **Known limitations** section covering the
-  process-scoped in-memory store, lack of network isolation beyond the OS process
-  model, and unbounded transform execution time.
+  process-scoped in-memory store and lack of network isolation beyond the OS
+  process model.
 - Core unit/integration/property/negative-corpus test count increased; total
   workspace tests now include the original 141 plus 4 property tests and 7
   negative-corpus tests.

@@ -52,9 +52,12 @@ behaviors are intentional and relevant to security audits:
 - Stratum does not provide network isolation beyond the OS process model. It
   does not perform network requests as part of normal operation, but it runs
   within the same process as its host and shares the host's privileges.
-- Input is bounded by `--max-input-size` to limit memory pressure, but
-  transform execution is not yet time-bounded. Pathological inputs could
-  block the calling thread until processing completes.
+- Input is bounded by `--max-input-size` to limit memory pressure. Each
+  transform is time-bounded by `transform_timeout_ms` (default 30 s); a
+  transform that exceeds the deadline is skipped and the original content is
+  returned unchanged. Timed-out transforms run in detached threads until they
+  finish, so a sustained stream of pathological inputs could accumulate worker
+  threads until the OS reclaims them.
 
 ## Supply Chain
 
