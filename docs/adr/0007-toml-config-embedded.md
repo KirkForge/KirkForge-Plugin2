@@ -27,7 +27,7 @@ load-bearing UX feature.
 
 ### Embedded default
 
-The defaults live at `crates/stratum-core/config/pipeline.toml`:
+The defaults live at `crates/kirkstratum-core/config/pipeline.toml`:
 
 ```toml
 # Default Stratum pipeline config. Embedded via include_str!.
@@ -57,7 +57,7 @@ bloat_threshold = 0.2
 The file is embedded into the binary via:
 
 ```rust
-// crates/stratum-core/src/pipeline/config.rs
+// crates/kirkstratum-core/src/pipeline/config.rs
 
 pub const DEFAULT_TOML: &str = include_str!("../../config/pipeline.toml");
 
@@ -99,7 +99,7 @@ offload_fallback_ratio = 0.85          # default
 ### The `PipelineConfig` struct
 
 ```rust
-// crates/stratum-core/src/pipeline/config.rs
+// crates/kirkstratum-core/src/pipeline/config.rs
 
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -172,7 +172,7 @@ The CLI binary resolves the effective config in this order, top wins:
 The resolution function:
 
 ```rust
-// crates/stratum-cli/src/config_loader.rs
+// crates/kirkstratum-cli/src/config_loader.rs
 
 pub fn load_config(cli: &CliArgs, env: &dyn EnvSource) -> Result<PipelineConfig, ConfigError> {
     let mut cfg = PipelineConfig::default();
@@ -207,7 +207,7 @@ The subcommand prints the merged effective config to stdout in the
 same TOML format the binary would parse. Implementation:
 
 ```rust
-// crates/stratum-cli/src/main.rs (in Commands::Config)
+// crates/kirkstratum-cli/src/main.rs (in Commands::Config)
 
 fn run_config_show(cfg: &PipelineConfig) -> anyhow::Result<()> {
     print!("{}", toml::to_string_pretty(cfg)?);
@@ -234,7 +234,7 @@ Negative first:
   (any key in the override file is explicit, no implicit merging).
 - The embedded TOML is compiled into the binary. A user who wants
   to inspect the *defaults* without running the binary must read
-  the source file `crates/stratum-core/config/pipeline.toml`.
+  the source file `crates/kirkstratum-core/config/pipeline.toml`.
   That file is the single source of truth — editing the source
   edits the embedded string.
 
@@ -251,9 +251,9 @@ Positive:
 
 ## Implementation notes
 
-The TOML file lives at `crates/stratum-core/config/pipeline.toml`.
-The struct lives at `crates/stratum-core/src/pipeline/config.rs`.
-The CLI loader lives at `crates/stratum-cli/src/config_loader.rs`.
+The TOML file lives at `crates/kirkstratum-core/config/pipeline.toml`.
+The struct lives at `crates/kirkstratum-core/src/pipeline/config.rs`.
+The CLI loader lives at `crates/kirkstratum-cli/src/config_loader.rs`.
 
 The `ConfigError` enum:
 

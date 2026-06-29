@@ -31,7 +31,7 @@ The orchestrator must:
 ## Decision
 
 The orchestrator lives at
-`crates/stratum-core/src/pipeline/orchestrator.rs`:
+`crates/kirkstratum-core/src/pipeline/orchestrator.rs`:
 
 ```rust
 use std::collections::HashMap;
@@ -323,7 +323,7 @@ compile-time constant and is exercised by a unit test that calls
 key fields. If the embedded config fails to parse, the binary
 fails to build.
 
-Tests live in `crates/stratum-core/src/pipeline/orchestrator.rs`
+Tests live in `crates/kirkstratum-core/src/pipeline/orchestrator.rs`
 under `#[cfg(test)] mod tests`. The minimum test set:
 
 1. `reformat_chain_terminates_on_target_ratio` — register three
@@ -343,5 +343,5 @@ under `#[cfg(test)] mod tests`. The minimum test set:
    assert `steps_applied` matches a golden list.
 
 The drift / parity tests for the orchestrator live in
-`crates/stratum-core/tests/pipeline_golden.rs` and use the
+`crates/kirkstratum-core/tests/pipeline_golden.rs` and use the
 fixtures under `examples/fixtures/` (ADR-0017).

@@ -36,12 +36,12 @@ The same shim handles:
 
 ## Decision
 
-The shim is `crates/stratum-hosts/src/shim.rs`:
+The shim is `crates/kirkstratum-hosts/src/shim.rs`:
 
 ```rust
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-use stratum_core::mode::Mode;
+use kirkstratum_core::mode::Mode;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Host {
@@ -263,7 +263,7 @@ Positive:
 ## Implementation notes
 
 The `Host` enum and `emit_to` function live at
-`crates/stratum-hosts/src/shim.rs`. The `Adapter` trait
+`crates/kirkstratum-hosts/src/shim.rs`. The `Adapter` trait
 (ADR-0008) calls `emit_to` from its `handle_event` method:
 
 ```rust

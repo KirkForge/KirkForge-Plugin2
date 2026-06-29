@@ -33,7 +33,7 @@ restart (ADR-0015).
 ### The enum
 
 ```rust
-// crates/stratum-core/src/mode.rs
+// crates/kirkstratum-core/src/mode.rs
 
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -111,7 +111,7 @@ pub struct ModeParseError(pub String);
 ### Config resolver
 
 ```rust
-// crates/stratum-cli/src/mode_resolver.rs (binary-side, uses env)
+// crates/kirkstratum-cli/src/mode_resolver.rs (binary-side, uses env)
 
 pub fn resolve_mode(env: &dyn EnvSource, config: &Config) -> Mode {
     // Order: env var > config file > default. Documented in the README.
@@ -180,7 +180,7 @@ Code first, then explanation.
 ...
 ```
 
-The builder in `stratum-hosts/src/rules.rs` parses the file once,
+The builder in `kirkstratum-hosts/src/rules.rs` parses the file once,
 strips out lines whose `stratum:mode:` directive does not match the
 active mode, and returns the filtered body. The HTML-comment
 directive is the same pattern used by the canonical-ruleset
@@ -198,7 +198,7 @@ A user can change mode at runtime via a slash command:
 /stratum              # prints current mode
 ```
 
-The parser is in `crates/stratum-hosts/src/command.rs`:
+The parser is in `crates/kirkstratum-hosts/src/command.rs`:
 
 ```rust
 #[derive(Debug, PartialEq, Eq)]
@@ -273,16 +273,16 @@ Positive:
 
 ## Implementation notes
 
-The `Mode` enum lives in `crates/stratum-core/src/mode.rs`. The
-`resolve_mode` function lives in `crates/stratum-cli/src/mode_resolver.rs`
+The `Mode` enum lives in `crates/kirkstratum-core/src/mode.rs`. The
+`resolve_mode` function lives in `crates/kirkstratum-cli/src/mode_resolver.rs`
 because it depends on the env source trait, which is binary-side.
 
-The rules filter lives in `crates/stratum-hosts/src/rules.rs`. It
-parses the canonical ruleset from `docs/rules/CANONICAL.md` (which
+The rules filter lives in `crates/kirkstratum-hosts/src/rules.rs`. It
+parses the canonical ruleset from `crates/kirkstratum-hosts/docs/rules/CANONICAL.md` (which
 is `include_str!`-ed into the binary at build time):
 
 ```rust
-const CANONICAL: &str = include_str!("../../../docs/rules/CANONICAL.md");
+const CANONICAL: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/docs/rules/CANONICAL.md"));
 
 pub fn build_rules(mode: Mode) -> String {
     let mut out = String::with_capacity(CANONICAL.len());

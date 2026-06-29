@@ -1,0 +1,17 @@
+[package]
+name = "kirkstratum-hosts"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description.workspace = true
+readme.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories = ["development-tools"]
+
+[dependencies]
+kirkstratum-core = { path = "../kirkstratum-core", version = "0.1.0" }
+
+[lints]
+workspace = true

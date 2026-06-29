@@ -27,7 +27,7 @@ fails to open is a documented footgun in this problem space.
 
 ## Decision
 
-The trait lives at `crates/stratum-core/src/store/mod.rs`:
+The trait lives at `crates/kirkstratum-core/src/store/mod.rs`:
 
 ```rust
 pub trait OffloadStore: Send + Sync {
@@ -80,7 +80,7 @@ fn derive_key(payload: &str) -> String {
 ### Backends
 
 ```rust
-// crates/stratum-core/src/store/mod.rs
+// crates/kirkstratum-core/src/store/mod.rs
 
 pub enum OffloadBackendConfig {
     Memory,
@@ -149,7 +149,7 @@ writer at a time per CLI invocation, occasional reads). On `get`,
 the backend checks `created_at + ttl_seconds < now` and returns
 `None` if expired (lazy TTL, no background reaper).
 
-The `sqlite` feature is opt-in in `stratum-core/Cargo.toml`:
+The `sqlite` feature is opt-in in `kirkstratum-core/Cargo.toml`:
 
 ```toml
 [features]
@@ -226,11 +226,11 @@ Positive:
 
 ## Implementation notes
 
-The `OffloadStore` trait lives in `crates/stratum-core/src/store/mod.rs`.
+The `OffloadStore` trait lives in `crates/kirkstratum-core/src/store/mod.rs`.
 The backends live in submodules:
 
 ```
-crates/stratum-core/src/store/
+crates/kirkstratum-core/src/store/
 ├── mod.rs               # trait + config + factory
 ├── memory.rs            # InMemoryOffloadStore
 ├── sqlite.rs            # SqliteOffloadStore (feature-gated)

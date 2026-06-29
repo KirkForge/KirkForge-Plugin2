@@ -28,7 +28,7 @@ and slower to maintain forever.
 The CLI is one binary with subcommands. The top-level enum:
 
 ```rust
-// crates/stratum-cli/src/args.rs
+// crates/kirkstratum-cli/src/args.rs
 
 use clap::{Parser, Subcommand, ValueEnum};
 
@@ -192,7 +192,7 @@ The precedence is documented in the README and asserted by the
 test suite. A refactor that reorders these layers fails CI.
 
 ```rust
-// crates/stratum-cli/src/precedence.rs
+// crates/kirkstratum-cli/src/precedence.rs
 
 pub fn resolve_config_path(
     cli: &Cli, env: &dyn EnvSource, xdg: &std::path::Path,
@@ -240,7 +240,7 @@ applicable:
 | 130 | `SIGINT` (default) |
 
 ```rust
-// crates/stratum-cli/src/exit.rs
+// crates/kirkstratum-cli/src/exit.rs
 
 pub fn exit_config_err(msg: &str) -> ! {
     eprintln!("stratum: {}", msg);
@@ -332,11 +332,11 @@ Positive:
 
 ## Implementation notes
 
-The CLI lives at `crates/stratum-cli/src/`. Subcommand
+The CLI lives at `crates/kirkstratum-cli/src/`. Subcommand
 implementations live in submodules:
 
 ```
-crates/stratum-cli/src/
+crates/kirkstratum-cli/src/
 ├── main.rs          # tokio::main / clap parse / dispatch
 ├── args.rs          # Cli, Command, subcommand arg structs
 ├── precedence.rs    # resolve_config_path, resolve_mode, etc.

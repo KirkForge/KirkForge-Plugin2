@@ -2,15 +2,15 @@
   "hooks": [
     {
       "event": "SessionStart",
-      "command": "stratum init hook ensure"
+      "command": "stratum rules"
     },
     {
       "event": "PreToolUse",
-      "command": "stratum rules emit"
+      "command": "stratum config --validate"
     },
     {
       "event": "UserPromptSubmit",
-      "command": "stratum mode track"
+      "command": "stratum run"
     }
   ]
 }

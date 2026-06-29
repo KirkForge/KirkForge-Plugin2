@@ -30,7 +30,7 @@ type system should make both classes of bug impossible.
 
 ## Decision
 
-We define two traits in `crates/stratum-core/src/pipeline/traits.rs`:
+We define two traits in `crates/kirkstratum-core/src/pipeline/traits.rs`:
 
 ```rust
 use crate::content::ContentType;
@@ -142,7 +142,7 @@ Offload markers are emitted in the output as:
 <<stratum:offload:{cache_key}>>
 ```
 
-The exact format is owned by `stratum-core` (in
+The exact format is owned by `kirkstratum-core` (in
 `src/pipeline/marker.rs`). The `OffloadOutput::cache_key` is the
 hash that follows the prefix. Retrieval is a separate trait method
 on `OffloadStore`:
@@ -197,9 +197,9 @@ Positive:
 
 ## Implementation notes
 
-The two traits live in `crates/stratum-core/src/pipeline/traits.rs`.
+The two traits live in `crates/kirkstratum-core/src/pipeline/traits.rs`.
 The output types live in the same file. The marker format lives in
-`crates/stratum-core/src/pipeline/marker.rs` and exposes:
+`crates/kirkstratum-core/src/pipeline/marker.rs` and exposes:
 
 ```rust
 pub fn render(key: &str) -> String;

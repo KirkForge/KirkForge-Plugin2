@@ -37,7 +37,7 @@ shapes the trait.
 
 ### The `detect` chain
 
-The detection lives at `crates/stratum-core/src/content/detect.rs`:
+The detection lives at `crates/kirkstratum-core/src/content/detect.rs`:
 
 ```rust
 use crate::content::ContentType;
@@ -284,8 +284,8 @@ Positive:
 
 ## Implementation notes
 
-The detection lives at `crates/stratum-core/src/content/detect.rs`.
-The `ContentType` enum lives at `crates/stratum-core/src/content/mod.rs`.
+The detection lives at `crates/kirkstratum-core/src/content/detect.rs`.
+The `ContentType` enum lives at `crates/kirkstratum-core/src/content/mod.rs`.
 The `unidiff` crate is a workspace dependency:
 
 ```toml

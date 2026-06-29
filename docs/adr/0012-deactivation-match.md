@@ -44,7 +44,7 @@ switch modes.
 ### The deactivation matcher
 
 ```rust
-// crates/stratum-hosts/src/command.rs
+// crates/kirkstratum-hosts/src/command.rs
 
 /// Returns true iff `text` is a whole-message deactivation phrase.
 /// Whole-message means: trimmed, lowercased, exact equality against
@@ -103,7 +103,7 @@ A contributor must not add any of these patterns:
   meant a command.
 
 The custom clippy lint catches `contains` on `str` inside
-`stratum-hosts`:
+`kirkstratum-hosts`:
 
 ```toml
 # clippy.toml (workspace root)
@@ -115,7 +115,7 @@ disallowed-methods = [
 The lint is too broad to enable blanket; instead, the rule is
 documented in the contributor guide and enforced by review. (A
 future ADR may add a scoped `clippy::pedantic` group for
-`stratum-hosts` that catches `contains` in `command.rs`.)
+`kirkstratum-hosts` that catches `contains` in `command.rs`.)
 
 ### What this allows
 
@@ -172,7 +172,7 @@ Positive:
 
 ## Implementation notes
 
-The matcher lives at `crates/stratum-hosts/src/command.rs`. Tests
+The matcher lives at `crates/kirkstratum-hosts/src/command.rs`. Tests
 in the same file:
 
 1. `whole_message_match_disables`

@@ -1,0 +1,35 @@
+[package]
+name = "kirkstratum-cli"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description.workspace = true
+readme.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories = ["command-line-utilities", "development-tools"]
+
+[[bin]]
+name = "stratum"
+path = "src/main.rs"
+
+[dependencies]
+kirkstratum-core = { path = "../kirkstratum-core", version = "0.1.0" }
+kirkstratum-hosts = { path = "../kirkstratum-hosts", version = "0.1.0" }
+clap = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+toml = { workspace = true }
+serde_json = { workspace = true }
+serde = { workspace = true }
+clap_complete = { workspace = true }
+
+[dev-dependencies]
+assert_cmd = "2"
+tempfile = "3"
+predicates = "3"
+
+[lints]
+workspace = true

@@ -14,7 +14,7 @@ layout would force every consumer to compile every host adapter.
 
 We need a layout that:
 
-- Keeps the engine library (`stratum-core`) free of all I/O on the hot
+- Keeps the engine library (`kirkstratum-core`) free of all I/O on the hot
   path so it can be embedded in another binary or reused as a Rust
   library without dragging in axum, tokio, or any host SDK.
 - Lets the cross-host adapter code (ADR-0008) live in one crate so a
@@ -36,9 +36,9 @@ KirkForge-Plugin2/
 ├── Cargo.toml                        # workspace manifest
 ├── rust-toolchain.toml               # pinned toolchain
 ├── crates/
-│   ├── stratum-core/                 # the engine (library)
-│   ├── stratum-cli/                  # the binary
-│   └── stratum-hosts/                # cross-host adapters + drift test
+│   ├── kirkstratum-core/                 # the engine (library)
+│   ├── kirkstratum-cli/                  # the binary
+│   └── kirkstratum-hosts/                # cross-host adapters + drift test
 ├── plugins/
 │   └── stratum-agent-hooks/          # marketplace plugin glue
 │       ├── .claude-plugin/plugin.json
@@ -52,7 +52,7 @@ KirkForge-Plugin2/
 └── README.md
 ```
 
-### `stratum-core`
+### `kirkstratum-core`
 
 The engine. Library crate, no `[[bin]]`. Dependencies are limited to:
 `serde`, `serde_json`, `thiserror`, `tracing`, `rayon`, `blake3`,
@@ -76,11 +76,11 @@ are an exception: `File` and `Sqlite` are allowed to touch disk
 because that is their purpose, but they live behind the trait so the
 core can be used with only `InMemory`.
 
-### `stratum-cli`
+### `kirkstratum-cli`
 
 The binary. Single `[[bin]]` named `stratum`. Clap-derive parsing
-lives here and only here. This crate depends on `stratum-core` and
-`stratum-hosts` and owns:
+lives here and only here. This crate depends on `kirkstratum-core` and
+`kirkstratum-hosts` and owns:
 
 - `src/main.rs` — entry point, top-level dispatch.
 - `src/args.rs` — `CliArgs`, `Commands` enum (subcommands are
@@ -93,7 +93,7 @@ The CLI crate may depend on `tokio` for graceful shutdown and on
 `clap`, `anyhow` (for the binary only — the core uses `thiserror`).
 The core must never gain a `tokio` dependency.
 
-### `stratum-hosts`
+### `kirkstratum-hosts`
 
 Cross-host adapters and the drift test. Library crate, no binary.
 Owns:
@@ -107,7 +107,7 @@ Owns:
   per-host instruction copy drifts from the canonical ruleset
   (ADR-0008, ADR-0017).
 
-This crate may depend on `serde_json` and `stratum-core`. It must not
+This crate may depend on `serde_json` and `kirkstratum-core`. It must not
 depend on any host's proprietary SDK; the adapters are pure
 data-shuffling code.
 
@@ -131,9 +131,9 @@ The workspace `Cargo.toml` declares:
 [workspace]
 resolver = "2"
 members = [
-    "crates/stratum-core",
-    "crates/stratum-cli",
-    "crates/stratum-hosts",
+    "crates/kirkstratum-core",
+    "crates/kirkstratum-cli",
+    "crates/kirkstratum-hosts",
 ]
 
 [workspace.package]
@@ -172,13 +172,13 @@ incremental = false
 Negative first:
 
 - Three crates is one more than the minimum. A reviewer who only
-  wants to ship a binary will ask why we need `stratum-hosts` as a
+  wants to ship a binary will ask why we need `kirkstratum-hosts` as a
   separate crate; the answer (the drift test needs a single crate to
   own every adapter) must be defended each time.
-- Publishing `stratum-core` to crates.io requires a separate
+- Publishing `kirkstratum-core` to crates.io requires a separate
   `Cargo.toml` discipline. Forgetting to keep `[workspace.package]`
   in sync with each member's `[package]` is a classic footgun.
-- `stratum-core` cannot use `tokio`, which rules out async-by-default
+- `kirkstratum-core` cannot use `tokio`, which rules out async-by-default
   transforms. If a future transform genuinely needs async I/O (e.g.
   network offload), it must negotiate an exception through ADR
   revision rather than sneak `tokio` into core.
@@ -187,8 +187,8 @@ Positive:
 
 - The engine can be vendored into another binary (a downstream
   proxy, an MCP server, a test harness) by depending on
-  `stratum-core` alone.
-- The drift test lives in `stratum-hosts` and is the only place
+  `kirkstratum-core` alone.
+- The drift test lives in `kirkstratum-hosts` and is the only place
   outside that crate's `src/` that may read every adapter file. The
   test's blast radius is bounded.
 - The CLI binary can be rebuilt to omit the hosts crate entirely
@@ -211,10 +211,10 @@ When scaffolding the workspace:
    channel = "1.75.0"
    components = ["rustfmt", "clippy", "rust-src"]
    ```
-3. The `stratum-cli` `Cargo.toml` has a `[features]` table with
-   `default = ["hosts"]` and `hosts = ["dep:stratum-hosts"]` so the
+3. The `kirkstratum-cli` `Cargo.toml` has a `[features]` table with
+   `default = ["hosts"]` and `hosts = ["dep:kirkstratum-hosts"]` so the
    pure-core build path is one feature flag away.
-4. The `stratum-core` `Cargo.toml` has a `[features]` table with
+4. The `kirkstratum-core` `Cargo.toml` has a `[features]` table with
    `default = []` and `sqlite = ["dep:rusqlite"]` so the
    `SqliteOffloadStore` (ADR-0004) is opt-in. The `File` backend
    uses only `std::fs` and is always present.

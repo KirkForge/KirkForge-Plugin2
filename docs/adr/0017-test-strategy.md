@@ -39,7 +39,7 @@ integration test at the apex.
 
 ### Unit tests
 
-Every public function in `stratum-core` and `stratum-cli` has
+Every public function in `kirkstratum-core` and `kirkstratum-cli` has
 at least one unit test in the same file. The tests assert:
 
 - The function's documented contract.
@@ -102,10 +102,10 @@ less compression" into "agent session is dead".
 
 ### Golden tests
 
-Golden tests live at `crates/stratum-core/tests/golden/`:
+Golden tests live at `crates/kirkstratum-core/tests/golden/`:
 
 ```
-crates/stratum-core/tests/golden/
+crates/kirkstratum-core/tests/golden/
 ├── json_compact/
 │   ├── input.json
 │   ├── expected.txt
@@ -154,7 +154,7 @@ output drifted.
 
 Three drift tests:
 
-1. **Adapter drift** — every per-host adapter in `stratum-hosts`
+1. **Adapter drift** — every per-host adapter in `kirkstratum-hosts`
    emits the canonical ruleset (ADR-0008) for `Mode::Full`,
    byte-for-byte.
 
@@ -271,18 +271,18 @@ Positive:
 The test files live alongside the source:
 
 ```
-crates/stratum-core/src/store/memory.rs
-crates/stratum-core/src/store/memory.rs     # unit tests inline
-crates/stratum-core/tests/property.rs        # property tests
-crates/stratum-core/tests/golden.rs          # golden test runner
-crates/stratum-core/tests/fixtures/          # input/expected pairs
+crates/kirkstratum-core/src/store/memory.rs
+crates/kirkstratum-core/src/store/memory.rs     # unit tests inline
+crates/kirkstratum-core/tests/property.rs        # property tests
+crates/kirkstratum-core/tests/golden.rs          # golden test runner
+crates/kirkstratum-core/tests/fixtures/          # input/expected pairs
 
-crates/stratum-hosts/src/adapters/*.rs       # unit tests inline
-crates/stratum-hosts/tests/copy_drift.rs     # drift test
-crates/stratum-hosts/tests/skill_drift.rs    # drift test (generated skill)
+crates/kirkstratum-hosts/src/adapters/*.rs       # unit tests inline
+crates/kirkstratum-hosts/tests/copy_drift.rs     # drift test
+crates/kirkstratum-hosts/tests/skill_drift.rs    # drift test (generated skill)
 
-crates/stratum-cli/src/hooks/*.rs            # unit tests inline
-crates/stratum-cli/tests/cli_smoke.rs        # integration test
+crates/kirkstratum-cli/src/hooks/*.rs            # unit tests inline
+crates/kirkstratum-cli/tests/cli_smoke.rs        # integration test
 ```
 
 The `proptest` macros are wrapped in `cfg!(test)` modules to
@@ -297,7 +297,7 @@ tempfile = "3"
 
 A test helper `build_test_pipeline(metadata: &GoldenMetadata) ->
 CompressionPipeline` lives at
-`crates/stratum-core/src/test_utils.rs` and is `#[cfg(test)]`.
+`crates/kirkstratum-core/src/test_utils.rs` and is `#[cfg(test)]`.
 
 The integration tests use `assert_cmd` for shell-out assertions:
 

@@ -12,7 +12,7 @@ multiple hosts (Claude Code, Codex, GitHub Copilot CLI, and any
 others that adopt the same hook protocol), and the integration
 code must:
 
-- Live in one place (`stratum-hosts`) so a single drift test can
+- Live in one place (`kirkstratum-hosts`) so a single drift test can
   cover every adapter.
 - Share a canonical ruleset so the same behaviour injects from every
   adapter, byte-identical.
@@ -31,7 +31,7 @@ not having it is silent divergence between hosts.
 
 ### Canonical source
 
-The canonical ruleset lives at `docs/rules/CANONICAL.md`. It is
+The canonical ruleset lives at `crates/kirkstratum-hosts/docs/rules/CANONICAL.md`. It is
 plain markdown with HTML-comment mode directives (ADR-0006):
 
 ```markdown
@@ -39,7 +39,7 @@ plain markdown with HTML-comment mode directives (ADR-0006):
 
 This file is the single source of truth. Every per-host adapter
 copies the body of this file; the drift test in
-`crates/stratum-hosts/tests/copy_drift.rs` enforces byte equality
+`crates/kirkstratum-hosts/tests/copy_drift.rs` enforces byte equality
 on the stripped body.
 
 ## Core rule: minimum correct change
@@ -69,10 +69,10 @@ a custom cache class, add when lru_cache measurably falls short.
 ### Per-host adapters
 
 Each host family has an adapter directory under
-`crates/stratum-hosts/src/adapters/`:
+`crates/kirkstratum-hosts/src/adapters/`:
 
 ```
-crates/stratum-hosts/src/adapters/
+crates/kirkstratum-hosts/src/adapters/
 ├── mod.rs
 ├── claude_code.rs        # Claude Code, Codex (shared hook format)
 ├── copilot_cli.rs        # GitHub Copilot CLI (different event names)
@@ -88,12 +88,12 @@ Each adapter file is a thin wrapper around two things:
    shape.
 
 The shared logic — read CANONICAL.md, filter by mode, return the
-body — lives in `crates/stratum-hosts/src/rules.rs`:
+body — lives in `crates/kirkstratum-hosts/src/rules.rs`:
 
 ```rust
-use stratum_core::mode::Mode;
+use kirkstratum_core::mode::Mode;
 
-const CANONICAL: &str = include_str!("../../../docs/rules/CANONICAL.md");
+const CANONICAL: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/docs/rules/CANONICAL.md"));
 
 pub fn build_rules(mode: Mode) -> String {
     let mut out = String::with_capacity(CANONICAL.len());
@@ -126,17 +126,17 @@ pub fn fallback_rules(mode: Mode) -> String {
 The `fallback_rules` is the load-bearing safety net. An adapter
 that fails to read CANONICAL.md (it shouldn't, because
 `include_str!` is compile-time, but the safety net exists for
-`docs/rules/CANONICAL.md` being empty or stripped) returns a short
+`crates/kirkstratum-hosts/docs/rules/CANONICAL.md` being empty or stripped) returns a short
 fallback string so the user sees *something* rather than silence.
 
 ### Drift test
 
 The drift test lives at
-`crates/stratum-hosts/tests/copy_drift.rs`:
+`crates/kirkstratum-hosts/tests/copy_drift.rs`:
 
 ```rust
-use stratum_hosts::adapters;
-use stratum_hosts::rules::{build_rules, CANONICAL};
+use kirkstratum_hosts::adapters;
+use kirkstratum_hosts::rules::{build_rules, CANONICAL};
 
 #[test]
 fn canonical_body_present() {
@@ -162,9 +162,9 @@ fn every_mode_directive_is_well_formed() {
 
 #[test]
 fn every_adapter_emits_canonical_body_for_mode_full() {
-    let canonical_filtered = build_rules(stratum_core::mode::Mode::Full);
+    let canonical_filtered = build_rules(kirkstratum_core::mode::Mode::Full);
     for adapter in adapters::all() {
-        let emitted = adapter.emit_rules(stratum_core::mode::Mode::Full);
+        let emitted = adapter.emit_rules(kirkstratum_core::mode::Mode::Full);
         assert_eq!(
             emitted, canonical_filtered,
             "adapter {} drifted from canonical",
@@ -205,10 +205,10 @@ with a single-line YAML frontmatter from the canonical body. The
 generator is a build script:
 
 ```rust
-// crates/stratum-hosts/build.rs
+// crates/kirkstratum-hosts/build.rs
 fn main() {
-    println!("cargo:rerun-if-changed=../../docs/rules/CANONICAL.md");
-    let canonical = std::fs::read_to_string("../../docs/rules/CANONICAL.md")
+    println!("cargo:rerun-if-changed=docs/rules/CANONICAL.md");
+    let canonical = std::fs::read_to_string("docs/rules/CANONICAL.md")
         .expect("CANONICAL.md");
     let pkg = format!(
         "---\nname: stratum\ndescription: Pipeline + behaviour layer for AI agent context.\nlicense: MIT\n---\n\n{}",
@@ -227,7 +227,7 @@ above, just with a different consumer.
 ### Per-host instruction-only fallback
 
 For hosts that only support project instructions (no hooks, no
-plugins), the user copies `docs/rules/CANONICAL.md` into the host's
+plugins), the user copies `crates/kirkstratum-hosts/docs/rules/CANONICAL.md` into the host's
 rules directory (`AGENTS.md`, `.cursor/rules/stratum.mdc`, etc.).
 The drift test does not cover this case — the user is responsible
 for the copy. The README documents the path for each supported
@@ -260,10 +260,10 @@ Positive:
 
 ## Implementation notes
 
-The `Adapter` trait lives in `crates/stratum-hosts/src/adapter.rs`.
+The `Adapter` trait lives in `crates/kirkstratum-hosts/src/adapter.rs`.
 The implementations live in
-`crates/stratum-hosts/src/adapters/<host>.rs`. The `all()` function
-lives in `crates/stratum-hosts/src/adapters/mod.rs`:
+`crates/kirkstratum-hosts/src/adapters/<host>.rs`. The `all()` function
+lives in `crates/kirkstratum-hosts/src/adapters/mod.rs`:
 
 ```rust
 pub fn all() -> Vec<&'static dyn super::Adapter> {
@@ -277,12 +277,12 @@ pub fn all() -> Vec<&'static dyn super::Adapter> {
 }
 ```
 
-The `stratum_mode:Mode` type re-exported from `stratum-core` is the
-single `Mode` enum (ADR-0006). The `stratum_hosts` crate depends
-on `stratum-core` and `serde_json` and nothing else from the host
+The `stratum_mode:Mode` type re-exported from `kirkstratum-core` is the
+single `Mode` enum (ADR-0006). The `kirkstratum-hosts` crate depends
+on `kirkstratum-core` and `serde_json` and nothing else from the host
 SDKs.
 
-The build script path is `crates/stratum-hosts/build.rs`. Its
+The build script path is `crates/kirkstratum-hosts/build.rs`. Its
 output is consumed by `src/skill.rs` via `include_str!` on the
 generated path:
 
@@ -295,7 +295,7 @@ The drift test for the generated skill is a separate test:
 ```rust
 #[test]
 fn generated_skill_matches_canonical_for_full_mode() {
-    use stratum_hosts::skill::SKILL_MD;
+    use kirkstratum_hosts::skill::SKILL_MD;
     let canonical = build_rules(Mode::Full);
     let skill_body = SKILL_MD
         .splitn(3, "---").nth(2).unwrap_or("").trim();

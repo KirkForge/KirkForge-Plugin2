@@ -122,16 +122,16 @@ stratum mode set <mode>            # explicit mode change
 stratum mode status                # print current mode
 ```
 
-Each subcommand is implemented in `crates/stratum-cli/src/hooks/`:
+Each subcommand is implemented in `crates/kirkstratum-cli/src/hooks/`:
 
 ```rust
-// crates/stratum-cli/src/hooks/session_start.rs
+// crates/kirkstratum-cli/src/hooks/session_start.rs
 
 use anyhow::Result;
 use std::io::{Read, Write};
-use stratum_core::mode::Mode;
-use stratum_hosts::rules::build_rules;
-use stratum_hosts::shim::{emit_to, Event, Host, Payload};
+use kirkstratum_core::mode::Mode;
+use kirkstratum_hosts::rules::build_rules;
+use kirkstratum_hosts::shim::{emit_to, Event, Host, Payload};
 
 pub fn run() -> Result<()> {
     let mut input = String::new();
@@ -214,7 +214,7 @@ Negative first:
 - The hooks manifest is host-specific. A host that uses a
   different event name (e.g. `sessionStart` vs `SessionStart`)
   needs a parallel `hooks.json` in the plugin directory. The
-  single-binary, multi-host design lives in `stratum-hosts`
+  single-binary, multi-host design lives in `kirkstratum-hosts`
   (ADR-0008, ADR-0009); the plugin directory is the host-facing
   surface.
 - `stratum init hook ensure` runs on every `Bash` and `PowerShell`
@@ -229,7 +229,7 @@ Positive:
 - The binary is the entire integration. The plugin manifest is
   metadata; the hooks file is glue. A new host that adopts the
   same hook protocol needs only a new `hooks.json` (or, if the
-  event names differ, a new adapter in `stratum-hosts`).
+  event names differ, a new adapter in `kirkstratum-hosts`).
 - The hook subcommands are short-lived processes. There is no
   daemon, no socket, no IPC. The host invokes `stratum`, Stratum
   responds, both move on.
@@ -239,10 +239,10 @@ Positive:
 
 ## Implementation notes
 
-The hook subcommands live in `crates/stratum-cli/src/hooks/`:
+The hook subcommands live in `crates/kirkstratum-cli/src/hooks/`:
 
 ```
-crates/stratum-cli/src/hooks/
+crates/kirkstratum-cli/src/hooks/
 ├── mod.rs
 ├── session_start.rs
 ├── subagent.rs

@@ -42,9 +42,9 @@ The feature gates must be:
 [workspace]
 resolver = "2"
 members = [
-    "crates/stratum-core",
-    "crates/stratum-cli",
-    "crates/stratum-hosts",
+    "crates/kirkstratum-core",
+    "crates/kirkstratum-cli",
+    "crates/kirkstratum-hosts",
 ]
 
 [workspace.package]
@@ -57,8 +57,8 @@ authors = ["KirkForge"]
 
 [workspace.dependencies]
 # Internal
-stratum-core = { path = "crates/stratum-core", version = "0.1.0" }
-stratum-hosts = { path = "crates/stratum-hosts", version = "0.1.0" }
+kirkstratum-core = { path = "crates/kirkstratum-core", version = "0.1.0" }
+kirkstratum-hosts = { path = "crates/kirkstratum-hosts", version = "0.1.0" }
 
 # External
 serde = { version = "1", features = ["derive"] }
@@ -123,10 +123,10 @@ contributor who upgrades the toolchain does so deliberately,
 in a separate commit, with a CI green-light before the
 upgrade merges.
 
-### Feature gates in stratum-core
+### Feature gates in kirkstratum-core
 
 ```toml
-# crates/stratum-core/Cargo.toml
+# crates/kirkstratum-core/Cargo.toml
 
 [features]
 default = []
@@ -151,30 +151,30 @@ and gets a binary with only the `InMemoryOffloadStore` and
 fails loud on SQLite init (ADR-0004) if the user picks
 `store = "sqlite"` in their config.
 
-### Feature gates in stratum-cli
+### Feature gates in kirkstratum-cli
 
 ```toml
-# crates/stratum-cli/Cargo.toml
+# crates/kirkstratum-cli/Cargo.toml
 
 [features]
 default = ["sqlite"]
-sqlite = ["stratum-core/sqlite"]
+sqlite = ["kirkstratum-core/sqlite"]
 ```
 
 The CLI's default features enable `sqlite` because the default
 store is SQLite. A user who wants a leaner binary builds with
 `--no-default-features`.
 
-### Feature gates in stratum-hosts
+### Feature gates in kirkstratum-hosts
 
 ```toml
-# crates/stratum-hosts/Cargo.toml
+# crates/kirkstratum-hosts/Cargo.toml
 
 [features]
 default = []
 ```
 
-`stratum-hosts` has no default features. It is a library; the
+`kirkstratum-hosts` has no default features. It is a library; the
 host adapter author opts in to whatever they need.
 
 ### CI matrix
@@ -283,7 +283,7 @@ experience failure.
 - A single `tokio` runtime in a future ADR. Not now.
 - Native dependencies via the `bundled` feature (`rusqlite`).
   This is the only native dependency in the MVP.
-- `#[cfg(feature = "...")]` gating throughout `stratum-core`
+- `#[cfg(feature = "...")]` gating throughout `kirkstratum-core`
   to keep the minimum binary small.
 
 ## Consequences

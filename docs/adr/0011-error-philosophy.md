@@ -35,7 +35,7 @@ right `StepOutcome` (ADR-0005).
 
 ## Decision
 
-The error type lives at `crates/stratum-core/src/error.rs`:
+The error type lives at `crates/kirkstratum-core/src/error.rs`:
 
 ```rust
 use std::fmt;
@@ -133,7 +133,7 @@ A transform author must not:
   ]
   ```
 
-  The clippy lint is enforced in CI for the `stratum-core` crate.
+  The clippy lint is enforced in CI for the `kirkstratum-core` crate.
 
 - Return `Result::Err` with a custom error type. The trait says
   `Result<_, TransformError>`; an author who wants richer errors
@@ -204,8 +204,8 @@ Positive:
 ## Implementation notes
 
 The `TransformError` enum lives in
-`crates/stratum-core/src/error.rs`. The orchestrator's match
-arms live in `crates/stratum-core/src/pipeline/orchestrator.rs`
+`crates/kirkstratum-core/src/error.rs`. The orchestrator's match
+arms live in `crates/kirkstratum-core/src/pipeline/orchestrator.rs`
 (ADR-0005). The clippy lint lives at the workspace root in
 `clippy.toml`.
 
@@ -225,14 +225,14 @@ Tests for the error philosophy:
    `cargo clippy --tests -- -D warnings` fails.
 
 Test 5 requires the `compiletest` suite. It is set up under
-`crates/stratum-core/tests/ui/` with one fixture file,
+`crates/kirkstratum-core/tests/ui/` with one fixture file,
 `unwrap_in_transform.rs`. CI runs `cargo clippy --workspace
 --all-targets -- -D warnings`, which is sufficient to catch
 violations without the compiletest suite. The fixture exists for
 documentation purposes.
 
 The store's silent-on-failure behaviour is tested in
-`crates/stratum-core/src/store/sqlite.rs`:
+`crates/kirkstratum-core/src/store/sqlite.rs`:
 
 ```rust
 #[test]

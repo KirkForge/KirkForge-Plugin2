@@ -294,9 +294,9 @@ Positive:
 
 ## Implementation notes
 
-The path resolution lives at `crates/stratum-core/src/paths.rs`.
-The config struct lives at `crates/stratum-cli/src/config.rs`.
-The flag file helpers live at `crates/stratum-cli/src/flag.rs`.
+The path resolution lives at `crates/kirkstratum-core/src/paths.rs`.
+The config struct lives at `crates/kirkstratum-cli/src/config.rs`.
+The flag file helpers live at `crates/kirkstratum-cli/src/flag.rs`.
 
 The `directories` crate is a workspace dependency:
 
@@ -308,7 +308,7 @@ directories = "5"
 The `tempfile` crate is a dependency of the CLI only:
 
 ```toml
-# crates/stratum-cli/Cargo.toml
+# crates/kirkstratum-cli/Cargo.toml
 tempfile = "3"
 ```
 
