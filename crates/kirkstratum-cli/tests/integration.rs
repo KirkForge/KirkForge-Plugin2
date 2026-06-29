@@ -478,3 +478,60 @@ fn hook_pre_tool_use_fails_when_config_is_invalid() {
         .failure()
         .code(78);
 }
+
+#[test]
+#[cfg(unix)]
+fn init_creates_config_and_refuses_overwrite_without_force() {
+    use std::fs;
+
+    let dir = tempfile::TempDir::new().unwrap();
+    let config_dir = dir.path().join("stratum");
+
+    let mut cmd = AssertCommand::cargo_bin("stratum").unwrap();
+    cmd.arg("init")
+        .arg("--config-dir")
+        .arg(&config_dir)
+        .env("HOME", dir.path())
+        .env_remove("XDG_CONFIG_HOME");
+    cmd.assert().success();
+
+    let path = config_dir.join("pipeline.toml");
+    assert!(path.exists());
+    let contents = fs::read_to_string(&path).unwrap();
+    assert!(contents.contains("bloat_threshold"));
+
+    // Second init without --force should fail.
+    let mut cmd = AssertCommand::cargo_bin("stratum").unwrap();
+    cmd.arg("init")
+        .arg("--config-dir")
+        .arg(&config_dir)
+        .env("HOME", dir.path())
+        .env_remove("XDG_CONFIG_HOME");
+    cmd.assert().failure().code(70);
+
+    // With --force it should overwrite.
+    fs::write(&path, "bloat_threshold = 0.99").unwrap();
+    let mut cmd = AssertCommand::cargo_bin("stratum").unwrap();
+    cmd.arg("init")
+        .arg("--config-dir")
+        .arg(&config_dir)
+        .arg("--force")
+        .env("HOME", dir.path())
+        .env_remove("XDG_CONFIG_HOME");
+    cmd.assert().success();
+    let contents = fs::read_to_string(&path).unwrap();
+    assert!(!contents.contains("0.99"));
+}
+
+#[test]
+fn missing_explicit_config_exits_config_error() {
+    AssertCommand::cargo_bin("stratum")
+        .unwrap()
+        .arg("--config")
+        .arg("/no/such/pipeline.toml")
+        .arg("config")
+        .arg("--validate")
+        .assert()
+        .failure()
+        .code(78);
+}

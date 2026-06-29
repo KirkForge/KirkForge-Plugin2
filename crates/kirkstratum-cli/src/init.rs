@@ -24,19 +24,6 @@ pub fn initialise_config(
             })?
             .join("stratum")
     };
-    std::fs::create_dir_all(&dir)
-        .with_context(|| format!("cannot create config directory {}", dir.display()))?;
-
-    // Restrict the config directory on Unix so other users cannot list or
-    // traverse it. The file itself is locked down below; this hardens the path
-    // leading to it.
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        let perms = std::fs::Permissions::from_mode(0o700);
-        std::fs::set_permissions(&dir, perms)
-            .with_context(|| format!("cannot set permissions on {}", dir.display()))?;
-    }
 
     let path = dir.join("pipeline.toml");
     if path.exists() && !force {
@@ -45,6 +32,26 @@ pub fn initialise_config(
             path.display()
         ));
     }
+
+    // Only create the directory (and set restrictive permissions) when we are
+    // actually going to write the file. This avoids side effects when init is
+    // called on an existing config without --force.
+    let dir_existed = dir.exists();
+    std::fs::create_dir_all(&dir)
+        .with_context(|| format!("cannot create config directory {}", dir.display()))?;
+
+    // Restrict the config directory on Unix so other users cannot list or
+    // traverse it. The file itself is locked down below; this hardens the path
+    // leading to it. Only change permissions on directories we created so we
+    // do not alter intentionally different permissions on existing paths.
+    #[cfg(unix)]
+    if !dir_existed {
+        use std::os::unix::fs::PermissionsExt;
+        let perms = std::fs::Permissions::from_mode(0o700);
+        std::fs::set_permissions(&dir, perms)
+            .with_context(|| format!("cannot set permissions on {}", dir.display()))?;
+    }
+
     std::fs::write(&path, DEFAULT_TOML)
         .with_context(|| format!("cannot write config to {}", path.display()))?;
 

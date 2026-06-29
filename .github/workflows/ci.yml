@@ -82,3 +82,33 @@ jobs:
 
       - name: Cargo deny check
         run: cargo deny check
+
+  semver:
+    name: Semver compatibility
+    runs-on: ubuntu-latest
+    needs: check
+    timeout-minutes: 15
+    # Non-blocking until crates are published and we have a 1.0 baseline. Once
+    # the workspace hits 1.0 this should be removed so semver violations fail
+    # the build before a breaking release.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.88.0
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo-semver-checks
+        run: cargo install cargo-semver-checks --locked
+
+      - name: Check semver for workspace crates
+        run: |
+          cargo semver-checks check-release -p kirkstratum-core \
+            -p kirkstratum-hosts -p kirkstratum-cli

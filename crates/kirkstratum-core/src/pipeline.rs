@@ -267,7 +267,9 @@ impl CompressionPipeline {
     ///
     /// When `timeout_ms` is `0`, the transform runs synchronously. Otherwise it is
     /// executed on a background thread and the result is waited on with a channel
-    /// timeout. If the transform does not finish in time (or panics), the original
+    /// timeout. The thread signals that it has started before the timer begins, so
+    /// the timeout measures transform execution time rather than thread scheduling
+    /// latency. If the transform does not finish in time (or panics), the original
     /// `content` is returned unchanged and a warning is emitted.
     fn apply_with_timeout(
         transform: &Arc<dyn Transform>,
@@ -280,18 +282,33 @@ impl CompressionPipeline {
             return transform.apply(&content);
         }
 
-        let (tx, rx) = std::sync::mpsc::channel();
+        let (result_tx, result_rx) = std::sync::mpsc::channel();
+        let (started_tx, started_rx) = std::sync::mpsc::channel();
         let transform = Arc::clone(transform);
         // Keep a copy of the input so we can return it unchanged if the
         // transform does not finish within the timeout.
         let content_for_thread = content.clone();
 
         std::thread::spawn(move || {
+            let _ = started_tx.send(());
             let result = transform.apply(&content_for_thread);
-            let _ = tx.send(result);
+            let _ = result_tx.send(result);
         });
 
-        match rx.recv_timeout(Duration::from_millis(timeout_ms)) {
+        // Wait for the worker to start before measuring the deadline. This
+        // prevents false timeouts when the OS is slow to schedule the new thread.
+        if started_rx
+            .recv_timeout(Duration::from_millis(timeout_ms))
+            .is_err()
+        {
+            warn!(
+                stage,
+                kind, timeout_ms, "transform failed to start; skipping"
+            );
+            return content;
+        }
+
+        match result_rx.recv_timeout(Duration::from_millis(timeout_ms)) {
             Ok(result) => result,
             Err(RecvTimeoutError::Timeout) => {
                 warn!(stage, kind, timeout_ms, "transform timed out; skipping");

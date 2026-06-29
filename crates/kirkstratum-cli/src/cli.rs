@@ -462,4 +462,43 @@ mod tests {
             "force=true should overwrite existing contents"
         );
     }
+
+    #[test]
+    fn init_config_without_force_does_not_create_directory() {
+        let dir = TempDir::new().unwrap();
+        let config_dir = dir.path().join("custom");
+        let env = FakeEnv { config_home: None };
+        let path = config_dir.join("pipeline.toml");
+
+        std::fs::create_dir_all(&config_dir).unwrap();
+        std::fs::write(&path, "bloat_threshold = 0.1").unwrap();
+
+        let result = initialise_config(&env, Some(&config_dir), false);
+        assert!(result.is_err());
+        // The directory already existed, so we should not have removed it.
+        assert!(config_dir.exists());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn init_config_preserves_existing_directory_permissions() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let dir = TempDir::new().unwrap();
+        let config_dir = dir.path().join("custom");
+        let env = FakeEnv { config_home: None };
+
+        std::fs::create_dir_all(&config_dir).unwrap();
+        let original_perms = std::fs::Permissions::from_mode(0o755);
+        std::fs::set_permissions(&config_dir, original_perms).unwrap();
+
+        let result = initialise_config(&env, Some(&config_dir), false);
+        assert!(result.is_ok());
+
+        let mode = std::fs::metadata(&config_dir).unwrap().permissions().mode() & 0o777;
+        assert_eq!(
+            mode, 0o755,
+            "existing directory permissions must not be altered"
+        );
+    }
 }
